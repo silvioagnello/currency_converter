@@ -3,10 +3,10 @@ import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 
 var request = Uri.parse(
-    "https://economia.awesomeapi.com.br/last/USD-BRL,EUR-BRL,BTC-BRL");
+    "https://economia.awesomeapi.com.br/last/USD-BRL,EUR-BRL,BTC-BRL,GBP-BRL");
 
 void main() async {
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -17,7 +17,7 @@ class MyApp extends StatelessWidget {
     // ignore: dead_code
     return MaterialApp(
       title: 'Currency Converter',
-      home: Home(),
+      home: const Home(),
       theme: ThemeData(
           hintColor: Colors.amber,
           primaryColor: Colors.white,
@@ -42,7 +42,7 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   @override
   Widget build(BuildContext context) {
-    return HomePage();
+    return const HomePage();
   }
 }
 
@@ -63,13 +63,15 @@ class _HomePageState extends State<HomePage> {
   final euroController = TextEditingController();
   final btcController = TextEditingController();
   final dolaController = TextEditingController();
+  final gbpController = TextEditingController();
 
   double dollar = 0.00;
   double euro = 0.00;
   double btc = 0.00;
+  double gbp = 0.00;
 
   void _clearAll() {
-    realController.text =
+    realController.text = gbpController.text =
         dolaController.text = euroController.text = btcController.text = "";
   }
 
@@ -79,12 +81,14 @@ class _HomePageState extends State<HomePage> {
       return;
     } else {
       double real = double.parse(text);
-      double dr1 = (real / dollar);
-      double dr2 = (real / euro);
-      double dr3 = (real / btc);
-      dolaController.text = dr1.toStringAsFixed(2);
-      euroController.text = dr2.toStringAsFixed(2);
-      btcController.text = dr3.toStringAsFixed(10);
+      double dr2 = (real / dollar);
+      double dr3 = (real / euro);
+      double dr1 = (real / btc);
+      double dr4 = (real / gbp);
+      dolaController.text = dr2.toStringAsFixed(2);
+      euroController.text = dr3.toStringAsFixed(2);
+      btcController.text = dr1.toStringAsFixed(10);
+      gbpController.text = dr4.toStringAsFixed(2);
     }
   }
 
@@ -94,12 +98,31 @@ class _HomePageState extends State<HomePage> {
       return;
     } else {
       double dollar = double.parse(text);
-      double dr1 = (this.dollar * dollar);
-      double dr2 = ((this.dollar * dollar) / euro);
-      double dr3 = ((this.dollar / btc));
+      double dr2 = (this.dollar);
+      double dr3 = ((this.dollar * dollar) / euro);
+      double dr1 = ((this.dollar * dollar) / btc);
+      double dr4 = ((this.dollar * dollar) / gbp);
+      realController.text = dr2.toStringAsFixed(2);
+      euroController.text = dr3.toStringAsFixed(2);
+      gbpController.text = dr4.toStringAsFixed(2);
+      btcController.text = dr1.toStringAsFixed(10);
+    }
+  }
+
+  void _gbpChanged(String text) {
+    if (text.isEmpty) {
+      _clearAll();
+      return;
+    } else {
+      double gbp = double.parse(text);
+      double dr1 = (this.gbp);
+      double dr2 = ((gbp * this.gbp) / dollar);
+      double dr3 = ((gbp * this.gbp) / euro);
+      double dr4 = ((gbp * this.gbp) / btc);
       realController.text = dr1.toStringAsFixed(2);
-      euroController.text = dr2.toStringAsFixed(2);
-      btcController.text = dr3.toStringAsFixed(10);
+      dolaController.text = dr2.toStringAsFixed(2);
+      euroController.text = dr3.toStringAsFixed(2);
+      btcController.text = dr4.toStringAsFixed(10);
     }
   }
 
@@ -109,12 +132,14 @@ class _HomePageState extends State<HomePage> {
       return;
     } else {
       double btc = double.parse(text);
-      double dr1 = (this.btc * btc) * 1000;
-      double dr2 = ((this.btc * btc) / dollar) * 1000;
-      double dr3 = (this.btc / euro);
+      double dr1 = (btc * this.btc);
+      double dr2 = ((btc * this.btc) / dollar);
+      double dr3 = ((btc * this.btc) / euro);
+      double dr4 = ((btc * this.btc) / gbp);
       realController.text = dr1.toStringAsFixed(2);
       dolaController.text = dr2.toStringAsFixed(2);
-      euroController.text = dr3.toStringAsFixed(10);
+      euroController.text = dr3.toStringAsFixed(2);
+      gbpController.text = dr4.toStringAsFixed(2);
     }
   }
 
@@ -127,9 +152,11 @@ class _HomePageState extends State<HomePage> {
       double dr1 = (this.euro * euro);
       double dr2 = ((this.euro * euro) / dollar);
       double dr3 = (this.euro / btc);
+      double dr4 = (this.euro / gbp);
       realController.text = dr1.toStringAsFixed(2);
       dolaController.text = dr2.toStringAsFixed(2);
-      btcController.text  = dr3.toStringAsFixed(10);
+      btcController.text = dr3.toStringAsFixed(10);
+      gbpController.text = dr4.toStringAsFixed(2);
     }
   }
 
@@ -159,25 +186,31 @@ class _HomePageState extends State<HomePage> {
                 String txdolar = snapshot.data!["USDBRL"]["high"];
                 String txeuro = snapshot.data!["EURBRL"]["high"];
                 String txbtc = snapshot.data!["BTCBRL"]["high"];
+                String txgbp = snapshot.data!["GBPBRL"]["high"];
                 dollar = double.parse(txdolar);
                 euro = double.parse(txeuro);
                 btc = double.parse(txbtc);
-                return Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: <Widget>[
-                        const Icon(Icons.monetization_on,
-                            size: 150.0, color: Colors.amber),
-                        buildTextField("Digite Aqui (Valores em Reais)", "R\$ ",
-                            realController, _realChanged),
-                        buildTextField("Digite Aqui (Valores em Dollar)",
-                            "US\$ ", dolaController, _dolaChanged),
-                        buildTextField("Digite Aqui (Valores em EURO)", "€\$ ",
-                            euroController, _euroChanged),
-                        buildTextField("Digite Aqui (Valores em BTC)", "BTC\$ ",
-                            btcController, _btcChanged),
-                      ]),
+                gbp = double.parse(txgbp);
+                return SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: <Widget>[
+                          const Icon(Icons.monetization_on,
+                              size: 150.0, color: Colors.amber),
+                          buildTextField("Digite Aqui (Valores em REAIS)",
+                              "R\$ ", realController, _realChanged),
+                          buildTextField("Digite Aqui (Valores em DOLLARES)",
+                              "US\$ ", dolaController, _dolaChanged),
+                          buildTextField("Digite Aqui (Valores em EUROS)",
+                              "€\$ ", euroController, _euroChanged),
+                          buildTextField("Digite Aqui (Valores em LIBRAS)",
+                              "£\$ ", gbpController, _gbpChanged),
+                          buildTextField("Digite Aqui (Valores em BTCS)",
+                              "BTC\$ ", btcController, _btcChanged),
+                        ]),
+                  ),
                 );
               default:
                 if (snapshot.hasError) {
